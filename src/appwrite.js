@@ -2,7 +2,7 @@ import { Client, Databases, ID, Query } from 'appwrite';
 
 
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-const COLLECTION_ID = import.meta.env.VITE_APPWRITE_TABLE_ID;
+const TABLE_ID = import.meta.env.VITE_APPWRITE_TABLE_ID;
 const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
 // const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;   
 
@@ -17,7 +17,7 @@ const databases = new Databases(client);
 export const updateSearchCount = async (searchTerm, movie) => {
   // 1. Use Appwrite SDK to check if the search term exists in the database
  try {
-  const result = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+  const result = await databases.listDocuments(DATABASE_ID, TABLE_ID, [
     Query.equal('searchTerm', searchTerm),
   ])
 
@@ -25,12 +25,12 @@ export const updateSearchCount = async (searchTerm, movie) => {
   if(result.documents.length > 0) {
    const doc = result.documents[0];
 
-   await databases.updateDocument(DATABASE_ID, COLLECTION_ID, doc.$id, {
+   await databases.updateDocument(DATABASE_ID, TABLE_ID, doc.$id, {
     count: doc.count + 1,
    })
   // 3. If it doesn't, create a new document with the search term and count as 1
   } else {
-   await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+   await databases.createDocument(DATABASE_ID, TABLE_ID, ID.unique(), {
     searchTerm,
     count: 1,
     movie_id: movie.id,
@@ -42,3 +42,14 @@ export const updateSearchCount = async (searchTerm, movie) => {
  }
 }
 
+
+export const getTrendingMovies = async () => {
+   try {
+     const result = await databases.listDocuments(DATABASE_ID,TABLE_ID, [Query.orderDesc('count'), Query.limit(5)])
+     return result.documents;
+   }
+ catch (error) {
+    console.error(error);
+   }
+
+}
